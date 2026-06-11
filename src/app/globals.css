@@ -1,26 +1,241 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: we toggle `.dark` on <html> for the Golden Hour theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Sun-Faded (light / daytime) ───────────────────────────────────────────────
+   Warm cream + sand, faded coral, seafoam teal, butter yellow. Sun-bleached
+   60s/70s surf-postcard palette — analog and warm, never clinical. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f1e4ca;
+  --bg-grad-1: #f8dcbb; /* warm peach sun glow, top */
+  --bg-grad-2: #f0e3c9; /* cream */
+  --bg-grad-3: #d6e6d6; /* faded seafoam, edge */
+  --bg-base: #f4ead4;
+
+  --surface: rgba(255, 251, 242, 0.80); /* warm paper card */
+  --surface-strong: rgba(255, 252, 245, 0.93);
+  --surface-solid: #fdf8ee; /* fully opaque — popovers/dropdowns */
+  --border: rgba(122, 88, 58, 0.16);
+  --hairline: rgba(122, 88, 58, 0.10);
+
+  --text: #43352a; /* sepia ink */
+  --muted: #8a6f56;
+  --faint: #b29a80;
+
+  --primary: #df6a4b; /* faded coral / terracotta */
+  --primary-soft: #f2a98f;
+  --accent: #4f9d85; /* seafoam teal */
+  --butter: #e3ad48; /* warm mustard accent */
+
+  --tide: #4f9d85; /* the wave line — sea teal */
+  --tide-2: #74b394;
+  --tide-fill: rgba(79, 157, 133, 0.18);
+  --tide-grid: rgba(122, 88, 58, 0.10);
+
+  --good: #4f9d6c; /* seafoam green */
+  --fair: #d99a3b; /* butter */
+  --poor: #cf7355; /* dusty terracotta */
+
+  --shadow: 0 16px 38px -20px rgba(120, 80, 48, 0.34);
+  --glow: 0 0 0 rgba(0, 0, 0, 0);
+  --ring: rgba(223, 106, 75, 0.38);
+
+  --grain-opacity: 0.06;
+  --grain-blend: multiply;
 }
 
+/* ── Golden Hour (dark / night) ────────────────────────────────────────────────
+   Warm dusk on the water — deep teal-green washed with amber sunset light and a
+   gold wave line. Cozy golden-hour, NOT cold tech-navy. */
+.dark {
+  --bg: #182320;
+  --bg-grad-1: #4b3324; /* warm amber horizon glow, top */
+  --bg-grad-2: #1b2824; /* deep teal-green */
+  --bg-grad-3: #213330; /* dusky green, edge */
+  --bg-base: #151e1c;
+
+  --surface: rgba(46, 56, 50, 0.55); /* warm dark card */
+  --surface-strong: rgba(50, 62, 55, 0.84);
+  --surface-solid: #212e29; /* fully opaque — popovers/dropdowns */
+  --border: rgba(233, 197, 150, 0.16);
+  --hairline: rgba(233, 197, 150, 0.10);
+
+  --text: #f3e4cc; /* warm cream */
+  --muted: #bca588;
+  --faint: #8a7c68;
+
+  --primary: #ef8a5d; /* sunset coral */
+  --primary-soft: #b9613f;
+  --accent: #6fb6a0; /* faded teal */
+  --butter: #ecbf6a;
+
+  --tide: #edb069; /* gold wave — sunset on the water */
+  --tide-2: #f2cd8f;
+  --tide-fill: rgba(237, 176, 105, 0.16);
+  --tide-grid: rgba(233, 197, 150, 0.10);
+
+  --good: #6fc28f;
+  --fair: #ecb65a;
+  --poor: #e08a64;
+
+  --shadow: 0 22px 55px -24px rgba(0, 0, 0, 0.62);
+  --glow: 0 0 18px rgba(237, 176, 105, 0.42);
+  --ring: rgba(239, 138, 93, 0.42);
+
+  --grain-opacity: 0.10;
+  --grain-blend: soft-light;
+}
+
+/* Map runtime vars -> Tailwind tokens. `inline` keeps utilities referencing the
+   var, so flipping .dark re-themes everything live. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-butter: var(--butter);
+  --color-tide: var(--tide);
+  --color-good: var(--good);
+  --color-fair: var(--fair);
+  --color-poor: var(--poor);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
+  --font-mono: var(--font-dm-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+  min-height: 100dvh;
+  color: var(--text);
+  background:
+    radial-gradient(130% 78% at 50% -14%, var(--bg-grad-1), transparent 56%),
+    radial-gradient(100% 72% at 100% 8%, var(--bg-grad-3), transparent 50%),
+    radial-gradient(110% 80% at 0% 100%, var(--bg-grad-3), transparent 55%),
+    linear-gradient(176deg, var(--bg-grad-2) 0%, var(--bg-base) 50%);
+  background-attachment: fixed;
+  background-color: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  transition: color 0.4s ease;
+}
+
+/* Film-grain overlay — the analog texture that warms everything up. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Headings carry the vintage display face. */
+h1, h2, h3, h4 {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* ── Utilities ─────────────────────────────────────────────────────────────── */
+
+/* Warm paper card — soft, tactile, lightly translucent over the gradient. */
+@utility glass {
+  background: var(--surface);
+  backdrop-filter: blur(7px) saturate(118%);
+  -webkit-backdrop-filter: blur(7px) saturate(118%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+@utility glass-strong {
+  background: var(--surface-strong);
+  backdrop-filter: blur(9px) saturate(125%);
+  -webkit-backdrop-filter: blur(9px) saturate(125%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* Soft warm glow on the tide stroke — gentle in dark, flat in light. */
+@utility tide-glow {
+  filter: drop-shadow(var(--glow));
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@utility edge-fade-x {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-now {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-rise { animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-floaty { animation: floaty 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise, .animate-floaty,
+  *[style*="pulse-now"] {
+    animation: none !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
