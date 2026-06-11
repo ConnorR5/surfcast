@@ -30,6 +30,7 @@ import type {
 } from "@/lib/types";
 import { getTideExtremes, getTideSamples } from "./noaa";
 import { getMarine, getWeather } from "./openMeteo";
+import { getWaterTempF } from "./waterTemp";
 
 // UPSTREAM_REVALIDATE is applied inside the individual data modules' fetches;
 // referenced here only to keep the import contract explicit.
@@ -75,8 +76,8 @@ export async function buildForecast(
   // calendar day in our range is fully covered, not truncated at midnight).
   const omForecastDays = FORECAST_DAYS + 1;
 
-  // Fetch all four sources in parallel; each degrades to empty on failure.
-  const [tideExtremes, tideSamples, marine, weather] = await Promise.all([
+  // Fetch all sources in parallel; each degrades to empty/null on failure.
+  const [tideExtremes, tideSamples, marine, weather, water] = await Promise.all([
     settle<TideExtreme[]>(
       getTideExtremes(location.stationId, rangeStart, rangeEnd),
       [],
@@ -87,6 +88,7 @@ export async function buildForecast(
     ),
     settle<MarineHour[]>(getMarine(location, PAST_DAYS, omForecastDays), []),
     settle<WeatherHour[]>(getWeather(location, PAST_DAYS, omForecastDays), []),
+    settle(getWaterTempF(location.lat, location.lon), null),
   ]);
 
   // Bucket everything by local date key.
@@ -101,6 +103,28 @@ export async function buildForecast(
     dayKeys.push(k);
     if (k === rangeEnd) break;
   }
+
+  // ── Water-temp anchoring ───────────────────────────────────────────────────
+  // Open-Meteo's modeled SST runs warm nearshore, so when a real open-ocean NDBC
+  // buoy reading is available we shift the per-day model SST by a single offset
+  // (buoy − model, at "now"). That keeps any day-to-day trend but pins the level
+  // to reality. With no model SST to anchor against, we use the buoy value flat.
+  const nowIso = nowLocalISO(tz);
+  const nowHour = hourOf(nowIso);
+  let modelNowSst: number | undefined;
+  let nearestToNow = Infinity;
+  for (const m of marine) {
+    if (m.seaSurfaceTemp === undefined || dateKey(m.time) !== todayKey) continue;
+    const d = Math.abs(hourOf(m.time) - nowHour);
+    if (d < nearestToNow) {
+      nearestToNow = d;
+      modelNowSst = m.seaSurfaceTemp;
+    }
+  }
+  const waterOffset =
+    water && typeof modelNowSst === "number"
+      ? Math.max(-15, Math.min(15, water.tempF - modelNowSst))
+      : 0;
 
   const days: DayForecast[] = dayKeys.map((date) => {
     const dExtremes = (extremesByDate.get(date) ?? []).sort((a, b) =>
@@ -148,7 +172,8 @@ export async function buildForecast(
 
     const surf = summarizeDay(surfByHour);
 
-    // Representative ocean temp: the marine hour nearest local noon.
+    // Representative ocean temp: the marine hour nearest local noon, then
+    // anchored to the open-ocean buoy reading (see waterOffset above).
     let seaSurfaceTemp: number | undefined;
     let bestNoonDist = Infinity;
     for (const m of dMarine) {
@@ -158,6 +183,10 @@ export async function buildForecast(
         bestNoonDist = dist;
         seaSurfaceTemp = m.seaSurfaceTemp;
       }
+    }
+    if (water) {
+      seaSurfaceTemp =
+        seaSurfaceTemp !== undefined ? seaSurfaceTemp + waterOffset : water.tempF;
     }
 
     const uvMax = dWeather.reduce((mx, w) => Math.max(mx, w.uvIndex), 0);
@@ -186,7 +215,7 @@ export async function buildForecast(
     location,
     generatedAt: new Date().toISOString(),
     todayKey,
-    nowLocalISO: nowLocalISO(tz),
+    nowLocalISO: nowIso,
     rangeStart,
     rangeEnd,
     days,
