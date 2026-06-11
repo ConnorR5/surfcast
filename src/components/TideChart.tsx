@@ -21,17 +21,18 @@ import {
 
 // ── Geometry constants (SVG user units) ──────────────────────────────────────
 // The vertical layout is banded so nothing stacks at the same height:
-//   y 0–16   NOW tag        (today only)
-//   y 18–46  day header     (weekday + date)
-//   y 50–74  high-tide labels band
-//   y 80…    the wave curve (peaks never rise above the H-label band)
+//   y 18–48  day header     (weekday + date + selected-day dot)
+//   y 54–70  NOW tag        (today only) — sits in the pocket below the dot
+//   y 76…    the dotted "now" line + the wave curve
+//   y 58…    high-tide labels band (above each peak)
 //   …bottom  low-tide labels band
 const DAY_W = 174; // per-day column width
-const H = 300; // total SVG height (taller so labels never collide)
-const PAD_TOP = 80; // headroom for NOW tag + day header + high-tide labels
+const H = 314; // total SVG height (taller so the NOW tag has its own pocket)
+const PAD_TOP = 92; // headroom for day header + NOW tag + high-tide labels
 const PAD_BOTTOM = 46; // footroom for low-tide labels + their times
-const HIGH_LABEL_MIN_TOP = 50; // H labels never climb into the day-header band
+const HIGH_LABEL_MIN_TOP = 56; // H labels never climb into the header/NOW band
 const LOW_LABEL_MAX_TOP = H - 30; // L labels never fall off the bottom
+const NOW_TAG_TOP = 54; // between the selected-day dot (~48) and the dotted line
 const MINUTES_PER_DAY = 1440;
 
 interface DayMeta {
@@ -392,7 +393,7 @@ export function TideChart({
           {nowX !== null && (
             <div
               className="pointer-events-none absolute -translate-x-1/2"
-              style={{ left: nowX, top: 0 }}
+              style={{ left: nowX, top: NOW_TAG_TOP }}
             >
               <span
                 className="tabular rounded-full px-1.5 py-0.5 text-[8px] font-bold tracking-widest text-bg"

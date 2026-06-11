@@ -167,7 +167,7 @@ function LoadingState() {
       </div>
 
       {/* Hero tide chart skeleton */}
-      <Shimmer className="h-[340px] w-full rounded-3xl" />
+      <Shimmer className="h-[352px] w-full rounded-3xl" />
 
       {/* Day detail skeleton */}
       <div className="grid grid-cols-2 gap-3.5">
