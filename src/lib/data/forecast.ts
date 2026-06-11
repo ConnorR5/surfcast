@@ -55,6 +55,25 @@ function hourOf(iso: string): number {
   return Number((iso.split("T")[1] ?? "00").slice(0, 2)) || 0;
 }
 
+/** Circular mean of a set of bearings (degrees), or undefined if empty/degenerate.
+ *  Swells arrive FROM open water, so the mean wave direction is a good proxy for
+ *  the direction a beach faces — which is what the wind sub-score needs to judge
+ *  offshore vs onshore for ANY coastline, not just Stone Harbor's. */
+function circularMeanDeg(degs: number[]): number | undefined {
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  for (const d of degs) {
+    if (!Number.isFinite(d)) continue;
+    const r = (d * Math.PI) / 180;
+    sx += Math.cos(r);
+    sy += Math.sin(r);
+    n += 1;
+  }
+  if (n === 0 || (sx === 0 && sy === 0)) return undefined;
+  return ((Math.atan2(sy, sx) * 180) / Math.PI + 360) % 360;
+}
+
 /** Settle a promise to a fallback value if it rejects (graceful degrade). */
 async function settle<T>(p: Promise<T>, fallback: T): Promise<T> {
   try {
@@ -126,6 +145,11 @@ export async function buildForecast(
       ? Math.max(-15, Math.min(15, water.tempF - modelNowSst))
       : 0;
 
+  // Estimate which way this beach faces from its dominant swell direction, so the
+  // surf score's offshore/onshore wind judgment is correct anywhere (falls back
+  // to the Stone Harbor default inside scoreHour when there's no wave-direction).
+  const coastFacing = circularMeanDeg(marine.map((m) => m.waveDirection));
+
   const days: DayForecast[] = dayKeys.map((date) => {
     const dExtremes = (extremesByDate.get(date) ?? []).sort((a, b) =>
       a.time < b.time ? -1 : 1,
@@ -155,6 +179,7 @@ export async function buildForecast(
         wavePeriod: m.wavePeriod,
         windSpeed,
         windDirection,
+        coastFacingDeg: coastFacing,
       });
       return {
         time: m.time,
