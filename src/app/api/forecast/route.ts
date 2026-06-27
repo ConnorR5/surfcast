@@ -1,6 +1,10 @@
-// GET /api/forecast?lat=&lon=&station=&name=&tz=
+// GET /api/forecast?lat=&lon=&stationId=&stationName=&name=&timezone=
 // Reads the location from query params (falling back to DEFAULT_LOCATION for any
 // absent field), builds a Location, and returns the assembled ForecastBundle.
+// NOTE: the param names here must match what useForecast's buildQuery sends
+// (stationId / timezone). They previously read "station" / "tz", which silently
+// dropped the user's resolved tide station + timezone and always fell back to the
+// default station — so tide data never matched the searched location.
 // Upstream caching happens inside the data layer via fetch next:{ revalidate };
 // this handler is not cached by default (Next 16), which is what we want.
 
@@ -21,9 +25,9 @@ export async function GET(request: Request): Promise<Response> {
       name: searchParams.get("name") ?? DEFAULT_LOCATION.name,
       lat: Number.isFinite(lat) ? lat : DEFAULT_LOCATION.lat,
       lon: Number.isFinite(lon) ? lon : DEFAULT_LOCATION.lon,
-      stationId: searchParams.get("station") ?? DEFAULT_LOCATION.stationId,
+      stationId: searchParams.get("stationId") ?? DEFAULT_LOCATION.stationId,
       stationName: searchParams.get("stationName") ?? DEFAULT_LOCATION.stationName,
-      timezone: searchParams.get("tz") ?? DEFAULT_LOCATION.timezone,
+      timezone: searchParams.get("timezone") ?? DEFAULT_LOCATION.timezone,
     };
 
     const bundle = await buildForecast(location);
