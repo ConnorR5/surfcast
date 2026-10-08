@@ -26,7 +26,7 @@ export default function Page() {
         <a
           href="https://coastn.co"
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener"
           aria-label="Built by Coast'n"
           className="group inline-flex items-center gap-2 text-muted transition-colors hover:text-text"
         >
@@ -35,7 +35,7 @@ export default function Page() {
           </span>
           <Image
             src="/coastn-logo.png"
-            alt=""
+            alt="Coast'n"
             width={70}
             height={29}
             className="h-[29px] w-auto opacity-60 transition-opacity group-hover:opacity-100 dark:hidden"
