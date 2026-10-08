@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Dashboard } from "@/components/Dashboard";
 
 export const metadata: Metadata = {
@@ -19,6 +20,35 @@ export default function Page() {
       }}
     >
       <Dashboard />
+
+      {/* Credit — the colored wordmark on sunrise, the white one on deeptide. */}
+      <footer className="mt-10 flex justify-center">
+        <a
+          href="https://coastn.co"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Built by Coast'n"
+          className="group inline-flex items-center gap-2 text-muted transition-colors hover:text-text"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">
+            Built by
+          </span>
+          <Image
+            src="/coastn-logo.png"
+            alt=""
+            width={70}
+            height={29}
+            className="h-[29px] w-auto opacity-60 transition-opacity group-hover:opacity-100 dark:hidden"
+          />
+          <Image
+            src="/coastn-logo-white.png"
+            alt=""
+            width={70}
+            height={29}
+            className="hidden h-[29px] w-auto opacity-60 transition-opacity group-hover:opacity-100 dark:block"
+          />
+        </a>
+      </footer>
     </main>
   );
 }
